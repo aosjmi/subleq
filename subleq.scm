@@ -1,5 +1,4 @@
 (use gauche.uvector)
-(use util.match)
 (use gauche.generator)
 
 (define (subleq prg)

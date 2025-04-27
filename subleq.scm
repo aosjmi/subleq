@@ -1,0 +1,27 @@
+(use gauche.uvector)
+(use util.match)
+(use gauche.generator)
+
+(define (subleq prg)
+  (let ((m (rlet1 v (make-s32vector 9999 0) 
+            (vector-for-each-with-index (^[i n] (set! (~ v i) n)) prg))))
+    (letrec ((run (^[pc]
+              (if (or (< pc 0) (>= pc 9996))
+                  #f
+                  (let ((a (~ m pc)) (b (~ m (+ pc 1))) (c (~ m (+ pc 2))))
+                    (inc! pc 3)
+                    (cond ((< a 0) (let1 i (read-byte)
+                                      (unless (eof-object? i) 
+                                        (inc! (~ m b) i)))
+                                    (run pc))
+                          ((< b 0) (write-char (integer->char (~ m a)))
+                                    (flush) 
+                                    (run pc))
+                          (else    (dec! (~ m b) a)
+                                    (run (if (<= (~ m b) 0) c pc)))))))))
+      (run 0))))
+(define (main args)
+  (subleq (list->vector 
+            (with-input-from-file (cadr args)
+              (^[] (generator->list (cut read))))))
+  0)
